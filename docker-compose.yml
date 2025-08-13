@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "${MONGO_PORT}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mongo_data:/data/db
+
+  apollo:
+    build:
+      context: ./packages/server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${APOLLO_PORT}:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      MONGO_URI: ${MONGO_URI}
+      WEB_ORIGIN: ${WEB_ORIGIN}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./packages/server:/app
+      - /app/node_modules
+    command: pnpm dev
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    working_dir: /workspace/apps/web
+    ports:
+      - "${WEB_PORT}:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:${APOLLO_PORT}/graphql
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      - apollo
+    volumes:
+      - .:/workspace
+    command: pnpm dev
+
+volumes:
+  mongo_data:

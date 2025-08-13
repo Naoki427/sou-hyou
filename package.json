@@ -1,0 +1,8 @@
+{
+  "name": "sou-hyou",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
