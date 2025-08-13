@@ -1,0 +1,35 @@
+name: CodeQL
+on:
+  pull_request:
+  push:
+    branches: [ main ]        # PR経由以外のpushも解析
+  schedule:
+    - cron: '0 18 * * 2'      # 週1（UTC火曜18:00＝JST水曜03:00）
+
+jobs:
+  analyze:
+    permissions:
+      security-events: write  # SARIFのアップロードに必要
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+
+    # 古いコミットに対する重複実行を防止（最新だけ残す）
+    concurrency:
+      group: codeql-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # CodeQL 初期化：強いクエリを追加、除外設定ファイルを適用
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+          config-file: .github/codeql/codeql-config.yml
+
+      # JS/TSはautobuild不要（C/C++/Java等のみ必要）
+      - uses: github/codeql-action/analyze@v3
