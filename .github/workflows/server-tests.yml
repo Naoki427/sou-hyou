@@ -1,0 +1,34 @@
+name: Server Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install deps (workspace)
+        run: pnpm install
+
+      - name: Install deps (server)
+        run: pnpm --filter @sou-hyou/server install
+
+      - name: Run tests (server)
+        run: pnpm --filter @sou-hyou/server test
