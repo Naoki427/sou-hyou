@@ -1,0 +1,13 @@
+name: sou-hyou CodeQL config
+
+# 生成物・依存物など解析不要パスを除外してノイズ削減
+paths-ignore:
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/.next/**"
+  - "apps/web/.next/**"
+  - "**/coverage/**"
+  - "**/.turbo/**"
+  - "**/.pnpm-store/**"
+
+

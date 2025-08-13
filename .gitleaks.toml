@@ -1,0 +1,16 @@
+title = "sou-hyou gitleaks config"
+
+[allowlist]
+description = "common false positives"
+paths = [
+  '''^docs/''',
+  '''^CHANGELOG\.md$''',
+  '''^apps/web/.env\.example$''',
+  '''^packages/server/fixtures/'''
+]
+
+regexes = [
+  '''^NEXT_PUBLIC_[A-Z0-9_]+=.+$''',
+  '''(?i)localhost(:\d+)?'''
+]
+
