@@ -1,35 +1,47 @@
-name: CodeQL
+name: CodeQL (Advanced)
+
 on:
-  pull_request:
   push:
-    branches: [ main ]        # PR経由以外のpushも解析
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   schedule:
-    - cron: '0 18 * * 2'      # 週1（UTC火曜18:00＝JST水曜03:00）
+    # 週1回（UTC火曜18:00＝JST水曜03:00）
+    - cron: "0 18 * * 2"
 
 jobs:
   analyze:
-    permissions:
-      security-events: write  # SARIFのアップロードに必要
-      actions: read
-      contents: read
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    runs-on: ubuntu-latest
 
-    # 古いコミットに対する重複実行を防止（最新だけ残す）
+    # 古い同一ブランチの実行をキャンセル（無駄な並列を防ぐ）
     concurrency:
       group: codeql-${{ github.ref }}
       cancel-in-progress: true
 
+    permissions:
+      security-events: write  # SARIFアップロードに必須
+      actions: read
+      contents: read
+      packages: read          # （private pack を使う場合に備え推奨）
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # CodeQL 初期化：強いクエリを追加、除外設定ファイルを適用
-      - uses: github/codeql-action/init@v3
+      # JS/TSリポ（pnpm/ビルド不要）なら build-mode: none でOK
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
-          languages: javascript
+          languages: javascript-typescript
+          build-mode: none
+          # より強いルールを追加
           queries: security-extended,security-and-quality
-          config-file: .github/codeql/codeql-config.yml
+          # 独自除外/設定を使う場合は下を有効化（ファイルを用意したときだけ）
+          # config-file: .github/codeql/codeql-config.yml
 
-      # JS/TSはautobuild不要（C/C++/Java等のみ必要）
-      - uses: github/codeql-action/analyze@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
