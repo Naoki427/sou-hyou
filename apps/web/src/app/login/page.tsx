@@ -6,8 +6,8 @@ import { GuestOnly } from "@/components/auth/GuestOnly";
 export default function Page() {
   return (
     <GuestOnly>
-      <AuthCard title="新規登録">
-        <AuthForm mode="register" />
+      <AuthCard title="ログイン">
+        <AuthForm mode="login" />
       </AuthCard>
     </GuestOnly>
   );

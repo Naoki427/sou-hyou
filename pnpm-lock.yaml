@@ -17,6 +17,9 @@ importers:
       '@apollo/client':
         specifier: ^3.13.9
         version: 3.13.9(@types/react@19.1.10)(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@hookform/resolvers':
+        specifier: ^5.2.1
+        version: 5.2.1(react-hook-form@7.62.0(react@19.1.0))
       firebase:
         specifier: ^12.1.0
         version: 12.1.0
@@ -32,6 +35,15 @@ importers:
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      react-firebase-hooks:
+        specifier: ^5.1.1
+        version: 5.1.1(firebase@12.1.0)(react@19.1.0)
+      react-hook-form:
+        specifier: ^7.62.0
+        version: 7.62.0(react@19.1.0)
+      yup:
+        specifier: ^1.7.0
+        version: 1.7.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -732,6 +744,11 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  '@hookform/resolvers@5.2.1':
+    resolution: {integrity: sha512-u0+6X58gkjMcxur1wRWokA7XsiiBJ6aK17aPZxhkoYiK5J+HcTx0Vhu9ovXe6H+dVpO6cjrn2FkJTryXEMlryQ==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
+
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -1112,6 +1129,9 @@ packages:
 
   '@rushstack/eslint-patch@1.12.0':
     resolution: {integrity: sha512-5EwMtOqvJMMa3HbmxLlF74e+3/HhwBTMcvt3nqVJgGCozO6hzIPOBlwm8mGVNR9SN2IJpxSnlxczyDjcn7qIyw==}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -3038,6 +3058,9 @@ packages:
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
+  property-expr@2.0.6:
+    resolution: {integrity: sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==}
+
   proto3-json-serializer@2.0.2:
     resolution: {integrity: sha512-SAzp/O4Yh02jGdRc+uIrGoe87dkN/XtwxfZ4ZyafJHymd79ozp5VG5nyZ7ygqPM5+cpLDjjGnYFUkngonyDPOQ==}
     engines: {node: '>=14.0.0'}
@@ -3073,6 +3096,18 @@ packages:
     resolution: {integrity: sha512-Xs1hdnE+DyKgeHJeJznQmYMIBG3TKIHJJT95Q58nHLSrElKlGQqDTR2HQ9fx5CN/Gk6Vh/kupBTDLU11/nDk/g==}
     peerDependencies:
       react: ^19.1.0
+
+  react-firebase-hooks@5.1.1:
+    resolution: {integrity: sha512-y2UpWs82xs+39q5Rc/wq316ca52QsC0n8m801V+yM4IC4hbfOL4yQPVSh7w+ydstdvjN9F+lvs1WrO2VYxpmdA==}
+    peerDependencies:
+      firebase: '>= 9.0.0'
+      react: '>= 16.8.0'
+
+  react-hook-form@7.62.0:
+    resolution: {integrity: sha512-7KWFejc98xqG/F4bAxpL41NB3o1nnvQO1RWZT3TqRZYL8RryQETGfEdVnJN2fy1crCiBLLjkRBVK05j24FxJGA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -3380,6 +3415,9 @@ packages:
     resolution: {integrity: sha512-resvxdc6Mgb7YEThw6G6bExlXKkv6+YbuzGg9xuXxSgxJF7Ozs+o8Y9+2R3sArdWdW8nOokoQb1yrpFB0pQK2g==}
     engines: {node: '>=14'}
 
+  tiny-case@1.0.3:
+    resolution: {integrity: sha512-Eet/eeMhkO6TX8mnUteS9zgPbUMQa4I6Kkp5ORiBD5476/m+PIRiumP5tmh5ioJpH7k51Kehawy2UDfsnxxY8Q==}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -3413,6 +3451,9 @@ packages:
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  toposort@2.0.2:
+    resolution: {integrity: sha512-0a5EOkAUp8D4moMi2W8ZF8jcga7BgZd91O/yabJCFY8az+XSzeGyTKs0Aoo897iV1Nj6guFq8orWDS96z91oGg==}
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
@@ -3477,6 +3518,10 @@ packages:
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
+
+  type-fest@2.19.0:
+    resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
+    engines: {node: '>=12.20'}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -3719,6 +3764,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  yup@1.7.0:
+    resolution: {integrity: sha512-VJce62dBd+JQvoc+fCVq+KZfPHr+hXaxCcVgotfwWvlR0Ja3ffYKaJBT8rptPOSKOGJDCUnW2C2JWpud7aRP6Q==}
 
   zen-observable-ts@1.2.5:
     resolution: {integrity: sha512-QZWQekv6iB72Naeake9hS1KxHlotfRpe+WGNbNx5/ta+R3DNjVO2bswf63gXlWDcs+EMd7XY8HfVQyP1X6T4Zg==}
@@ -4440,6 +4488,11 @@ snapshots:
       protobufjs: 7.5.3
       yargs: 17.7.2
 
+  '@hookform/resolvers@5.2.1(react-hook-form@7.62.0(react@19.1.0))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.62.0(react@19.1.0)
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.6':
@@ -4709,6 +4762,8 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.12.0': {}
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -6919,6 +6974,8 @@ snapshots:
       object-assign: 4.1.1
       react-is: 16.13.1
 
+  property-expr@2.0.6: {}
+
   proto3-json-serializer@2.0.2:
     dependencies:
       protobufjs: 7.5.3
@@ -6965,6 +7022,15 @@ snapshots:
     dependencies:
       react: 19.1.0
       scheduler: 0.26.0
+
+  react-firebase-hooks@5.1.1(firebase@12.1.0)(react@19.1.0):
+    dependencies:
+      firebase: 12.1.0
+      react: 19.1.0
+
+  react-hook-form@7.62.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   react-is@16.13.1: {}
 
@@ -7384,6 +7450,8 @@ snapshots:
       - supports-color
     optional: true
 
+  tiny-case@1.0.3: {}
+
   tinybench@2.9.0: {}
 
   tinyexec@0.3.2: {}
@@ -7410,6 +7478,8 @@ snapshots:
       is-number: 7.0.0
 
   toidentifier@1.0.1: {}
+
+  toposort@2.0.2: {}
 
   tr46@0.0.3: {}
 
@@ -7489,6 +7559,8 @@ snapshots:
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
+
+  type-fest@2.19.0: {}
 
   type-is@1.6.18:
     dependencies:
@@ -7773,6 +7845,13 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  yup@1.7.0:
+    dependencies:
+      property-expr: 2.0.6
+      tiny-case: 1.0.3
+      toposort: 2.0.2
+      type-fest: 2.19.0
 
   zen-observable-ts@1.2.5:
     dependencies:
