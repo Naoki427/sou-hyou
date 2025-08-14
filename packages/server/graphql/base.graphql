@@ -1,0 +1,9 @@
+scalar JSON
+
+type Query {
+  health: String!
+}
+
+type Mutation {
+  _: Boolean # 空だとエラー出るためのダミー
+}

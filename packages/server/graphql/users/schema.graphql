@@ -1,0 +1,22 @@
+type User {
+  id: ID!
+  uid: String!
+  email: String
+  name: String
+  photoURL: String
+  createdAt: String
+  updatedAt: String
+}
+
+extend type Query {
+  me: User
+}
+
+input UpdateMeInput {
+  displayName: String
+  photoURL: String
+}
+
+extend type Mutation {
+  updateMe(input: UpdateMeInput!): User!
+}

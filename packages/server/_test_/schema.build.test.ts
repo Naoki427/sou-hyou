@@ -1,15 +1,11 @@
-import { expect, test } from "vitest";
-import { readFileSync } from "fs";
-import path from "path";
+import { describe, test, expect } from "vitest";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { typeDefs } from "../graphql/index.js";
 import { resolvers } from "../graphql/resolvers.js";
 
-test("schema and resolvers are compatible", () => {
-  const typeDefs = readFileSync(
-    path.join(process.cwd(), "graphql/schema.graphql"),
-    "utf8"
-  );
-  expect(() =>
-    makeExecutableSchema({ typeDefs, resolvers })
-  ).not.toThrow();
+describe("schema and resolvers are compatible", () => {
+  test("builds executable schema", () => {
+    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    expect(schema).toBeTruthy();
+  });
 });

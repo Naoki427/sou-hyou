@@ -1,0 +1,39 @@
+enum FieldType { NUMBER SELECT COMMENT }
+
+type Field { label: String!, type: FieldType!, value: JSON }
+type Horse { name: String!, predictionMark: String!, fields: [Field!]! }
+
+type Item {
+  id: ID!
+  type: String!      # "folder" | "memo"
+  name: String!
+  path: String!
+  parent: ID
+  ancestors: [ID!]!
+  depth: Int!
+  owner: ID!
+  horses: [Horse!]
+  createdAt: String
+  updatedAt: String
+}
+
+input FieldInput { label: String!, type: FieldType!, value: JSON }
+input HorseInput { name: String!, predictionMark: String!, fields: [FieldInput!] }
+input CreateMemoInput { name: String!, parentId: ID, horses: [HorseInput!] }
+input CreateFolderInput {
+  name: String!
+  parentId: ID
+}
+
+extend type Query {
+  myItems(parentId: ID): [Item!]!
+  item(id: ID!): Item
+}
+
+extend type Mutation {
+  createMemo(input: CreateMemoInput!): Item!
+}
+
+extend type Mutation {
+  createFolder(input: CreateFolderInput!): Item!
+}
