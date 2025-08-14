@@ -1,3 +1,14 @@
+type User {
+  id: ID!
+  uid: String!
+  email: String
+  name: String
+  photoURL: String
+  createdAt: String
+  updatedAt: String
+}
+
 type Query {
   health: String!
+  me: User
 }

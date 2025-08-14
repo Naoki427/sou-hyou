@@ -27,6 +27,7 @@ services:
       PORT: 4000
       MONGO_URI: ${MONGO_URI}
       WEB_ORIGIN: ${WEB_ORIGIN}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64}
     depends_on:
       mongo:
         condition: service_healthy
