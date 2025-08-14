@@ -1,7 +1,7 @@
 "use client";
-import { ApolloProvider, gql, useQuery } from "@apollo/client";
-import { client } from "../lib/apollo-client";
-import { Header } from "@/components/Header";
+import { gql, useQuery } from "@apollo/client";
+import { GuestOnly } from "@/components/auth/GuestOnly";
+import Link from "next/link";
 
 const HEALTH = gql`query { health }`;
 
@@ -13,12 +13,25 @@ function HealthCheck() {
 
 export default function Page() {
   return (
-    <>
-    <Header />
-      <main style={{ padding: 24 }}>
+    <GuestOnly>
+      <div style={{ padding: 24 }}>
         <h1>これはルートページです</h1>
         <HealthCheck />
-      </main>
-    </>
+        <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+          <Link
+            href="/login"
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              textDecoration: "none",
+              borderRadius: "6px",
+            }}
+          >
+            ログイン
+          </Link>
+        </div>
+      </div>
+    </GuestOnly>
   );
 }
