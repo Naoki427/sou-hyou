@@ -1,4 +1,6 @@
-import { Schema, model, models } from "mongoose";
+import mongoose from "mongoose";
+
+const { Schema, model, models } = mongoose;
 
 export type ItemType = "folder" | "memo";
 
@@ -48,8 +50,6 @@ itemSchema.index({ owner: 1, ancestors: 1 });
 // メモだけ高速に一覧
 itemSchema.index({ owner: 1, type: 1, createdAt: -1 });
 
-export type ItemDoc = typeof itemSchema extends infer S
-  ? S extends Schema ? InstanceType<(typeof models)["Item"]> : any
-  : any;
+export type ItemDoc = mongoose.InferSchemaType<typeof itemSchema>;
 
 export default models.Item || model("Item", itemSchema);
