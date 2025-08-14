@@ -1,0 +1,16 @@
+scalar JSON
+
+type Query {
+  health: String!
+  me: User
+}
+
+type Mutation {
+  _: Boolean # 空だとエラー出るためのダミー
+}
+
+type User {
+  id: ID!
+  uid: String!
+  email: String
+}

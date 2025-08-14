@@ -1,0 +1,8 @@
+input UpdateMeInput {
+  displayName: String
+  photoURL: String
+}
+
+extend type Mutation {
+  updateMe(input: UpdateMeInput!): User!
+}
