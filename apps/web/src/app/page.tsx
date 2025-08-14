@@ -15,12 +15,10 @@ export default function Page() {
   return (
     <>
     <Header />
-    <ApolloProvider client={client}>
       <main style={{ padding: 24 }}>
         <h1>これはルートページです</h1>
         <HealthCheck />
       </main>
-    </ApolloProvider>
     </>
   );
 }
