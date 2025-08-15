@@ -18,11 +18,11 @@ export function HomeModalsProvider() {
       const ce = e as CustomEvent<OpenDetail>;
       setMemo(ce.detail);
     };
-    window.addEventListener("open-create-folder", onFolder as any);
-    window.addEventListener("open-create-memo", onMemo as any);
+    window.addEventListener("open-create-folder", onFolder);
+    window.addEventListener("open-create-memo", onMemo);
     return () => {
-      window.removeEventListener("open-create-folder", onFolder as any);
-      window.removeEventListener("open-create-memo", onMemo as any);
+      window.removeEventListener("open-create-folder", onFolder);
+      window.removeEventListener("open-create-memo", onMemo);
     };
   }, []);
 

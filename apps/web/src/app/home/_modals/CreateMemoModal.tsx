@@ -41,8 +41,8 @@ export function CreateMemoModal({ open, onClose, parentId, parentPath }: Props) 
         setName("");
         router.push(`/home${created.path}`);
       }
-    } catch (e: any) {
-      setErr(e?.message ?? "作成に失敗しました");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "作成に失敗しました");
     }
   };
 
