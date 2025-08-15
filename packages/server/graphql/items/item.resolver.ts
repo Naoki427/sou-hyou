@@ -2,28 +2,27 @@ import { GraphQLError } from "graphql";
 import Item from "../../models/Item.js";
 import User from "../../models/User.js";
 
-const requireUid = (ctx: any) => {
+const requireUserId = async (ctx: any) => {
   if (!ctx?.user?.uid) throw new GraphQLError("UNAUTHENTICATED");
-  return ctx.user.uid as string;
+  const uid = ctx.user.uid as string;
+  
+  // Firebase UIDからUser documentのObjectIdを取得
+  const user = await User.findOne({ uid });
+  if (!user) throw new GraphQLError("USER_NOT_FOUND");
+  
+  return user._id;
 };
 
-// name から path セグメントを作る（スラッシュ除去 & 前後空白トリム）
 const toSegment = (name: string) => name.trim().replace(/\//g, "-");
-
 const joinPath = (parentPath: string | null, name: string) =>
   parentPath ? `${parentPath}/${toSegment(name)}` : `/${toSegment(name)}`;
-
-const toFieldTypeString = (t: "NUMBER" | "SELECT" | "COMMENT") =>
-  t.toLowerCase(); // "number" | "select" | "comment"
 
 export default {
   Query: {
     myItems: async (_: unknown, { parentId }: { parentId?: string | null }, ctx: any) => {
-      const uid = requireUid(ctx);
-      const owner = await User.findOne({ uid });
-      if (!owner) throw new GraphQLError("USER_NOT_FOUND");
+      const userId = await requireUserId(ctx);
 
-      const q: any = { owner: owner._id };
+      const q: any = { owner: userId };
       if (parentId === undefined || parentId === null || parentId === "") {
         q.parent = null;
       } else {
@@ -34,19 +33,30 @@ export default {
     },
 
     item: async (_: unknown, { id }: { id: string }, ctx: any) => {
-      const uid = requireUid(ctx);
-      const owner = await User.findOne({ uid });
-      if (!owner) throw new GraphQLError("USER_NOT_FOUND");
+      const userId = await requireUserId(ctx);
+      return Item.findOne({ _id: id, owner: userId });
+    },
 
-      return Item.findOne({ _id: id, owner: owner._id });
+    itemByPath: async (_: unknown, { path }: { path: string }, ctx: any) => {
+      const userId = await requireUserId(ctx);
+      const doc = await Item.findOne({ owner: userId, path });
+      if (!doc) return null;
+
+      return doc;
+    },
+
+    myRecentMemos: async (_: unknown, { limit = 20 }: { limit?: number }, ctx: any) => {
+      const userId = await requireUserId(ctx);
+      const n = Math.max(1, Math.min(limit, 100));
+      return Item.find({ owner: userId, type: "MEMO" })
+        .sort({ updatedAt: -1 })
+        .limit(n);
     },
   },
 
   Mutation: {
     createFolder: async (_: unknown, { input }: any, ctx: any) => {
-      const uid = requireUid(ctx);
-      const owner = await User.findOne({ uid });
-      if (!owner) throw new GraphQLError("USER_NOT_FOUND");
+      const userId = await requireUserId(ctx);
 
       let parentDoc: any = null;
       let ancestors: any[] = [];
@@ -54,9 +64,9 @@ export default {
       let parentPath: string | null = null;
 
       if (input.parentId) {
-        parentDoc = await Item.findOne({ _id: input.parentId, owner: owner._id });
+        parentDoc = await Item.findOne({ _id: input.parentId, owner: userId });
         if (!parentDoc) throw new GraphQLError("PARENT_NOT_FOUND");
-        if (parentDoc.type !== "folder") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
+        if (parentDoc.type !== "FOLDER") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
 
         ancestors = [...(parentDoc.ancestors || []), parentDoc._id];
         depth = (parentDoc.depth || 0) + 1;
@@ -67,13 +77,13 @@ export default {
 
       try {
         const doc = await Item.create({
-          type: "folder",
+          type: "FOLDER",
           name: input.name,
           path,
           parent: parentDoc?._id ?? null,
           ancestors,
           depth,
-          owner: owner._id,
+          owner: userId,
           horses: [],
         });
         return doc;
@@ -84,9 +94,7 @@ export default {
     },
 
     createMemo: async (_: unknown, { input }: any, ctx: any) => {
-      const uid = requireUid(ctx);
-      const owner = await User.findOne({ uid });
-      if (!owner) throw new GraphQLError("USER_NOT_FOUND");
+      const userId = await requireUserId(ctx);
 
       let parentDoc: any = null;
       let ancestors: any[] = [];
@@ -94,9 +102,9 @@ export default {
       let parentPath: string | null = null;
 
       if (input.parentId) {
-        parentDoc = await Item.findOne({ _id: input.parentId, owner: owner._id });
+        parentDoc = await Item.findOne({ _id: input.parentId, owner: userId });
         if (!parentDoc) throw new GraphQLError("PARENT_NOT_FOUND");
-        if (parentDoc.type !== "folder") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
+        if (parentDoc.type !== "FOLDER") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
 
         ancestors = [...(parentDoc.ancestors || []), parentDoc._id];
         depth = (parentDoc.depth || 0) + 1;
@@ -111,24 +119,21 @@ export default {
         }
         const fields = (h.fields || []).map((f: any) => {
           if (!f?.label || !f?.type) throw new GraphQLError("FIELD_LABEL_AND_TYPE_REQUIRED");
-          return {
-            label: f.label,
-            type: toFieldTypeString(f.type),
-            value: f.value ?? null,
-          };
+          // f.type は "number" | "select" | "comment" を想定
+          return { label: f.label, type: f.type.toUpperCase(), value: f.value ?? null };
         });
         return { name: h.name, predictionMark: h.predictionMark, fields };
       });
 
       try {
         const doc = await Item.create({
-          type: "memo",
+          type: "MEMO",
           name: input.name,
           path,
           parent: parentDoc?._id ?? null,
           ancestors,
           depth,
-          owner: owner._id,
+          owner: userId,
           horses,
         });
         return doc;

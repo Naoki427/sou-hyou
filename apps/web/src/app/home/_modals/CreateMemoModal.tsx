@@ -1,0 +1,95 @@
+"use client";
+import { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
+import { useRouter } from "next/navigation";
+
+const CREATE_MEMO = gql`
+  mutation($input: CreateMemoInput!) {
+    createMemo(input: $input) { id name path type }
+  }
+`;
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  parentId: string | null;
+  parentPath: string;
+};
+
+export function CreateMemoModal({ open, onClose, parentId, parentPath }: Props) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [createMemo, { loading }] = useMutation(CREATE_MEMO);
+
+  if (!open) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    if (!name.trim()) {
+      setErr("名前は必須です");
+      return;
+    }
+    try {
+      const { data } = await createMemo({
+        variables: { input: { name: name.trim(), parentId, horses: [] } },
+      });
+      const created = data?.createMemo;
+      if (created?.path) {
+        onClose();
+        setName("");
+        router.push(`/home${created.path}`);
+      }
+    } catch (e: any) {
+      setErr(e?.message ?? "作成に失敗しました");
+    }
+  };
+
+  return (
+    <div style={backdrop} onClick={onClose}>
+      <div style={modal} onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>メモ作成</h3>
+        <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+          親: <code>{parentPath || "/"}</code>
+        </div>
+        <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
+          <input
+            autoFocus
+            placeholder="例: 七夕賞"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={input}
+          />
+          {err && <div style={{ color: "#c00", fontSize: 13 }}>{err}</div>}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button type="button" onClick={onClose} style={btnGhost}>キャンセル</button>
+            <button disabled={loading} type="submit" style={btnPrimary}>
+              {loading ? "作成中..." : "作成"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const backdrop: React.CSSProperties = {
+  position: "fixed", inset: 0, background: "rgba(0,0,0,.4)",
+  display: "grid", placeItems: "center", zIndex: 1000
+};
+const modal: React.CSSProperties = {
+  width: "min(92vw, 420px)", background: "#fff", borderRadius: 12,
+  boxShadow: "0 10px 30px rgba(0,0,0,.2)", padding: 16
+};
+const input: React.CSSProperties = {
+  padding: "10px 12px", borderRadius: 8, border: "1px solid #ddd"
+};
+const btnPrimary: React.CSSProperties = {
+  padding: "8px 12px", borderRadius: 8, border: "1px solid #222",
+  background: "#222", color: "#fff", cursor: "pointer"
+};
+const btnGhost: React.CSSProperties = {
+  padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd",
+  background: "#fff", cursor: "pointer"
+};
