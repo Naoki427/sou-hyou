@@ -1,4 +1,4 @@
-// ★ ここを一番上に置く（import より前）
+import { beforeAll, afterAll, test, expect, vi } from "vitest";
 vi.mock("../services/firebaseAdmin.js", () => ({
   getFirebaseAuth: () => ({
     verifyIdToken: async () => ({
@@ -10,7 +10,6 @@ vi.mock("../services/firebaseAdmin.js", () => ({
   }),
 }));
 
-import { beforeAll, afterAll, test, expect, vi } from "vitest";
 import http from "http";
 import getPort from "get-port";
 import { setupMongo, teardownMongo } from "./helpers/setup.mongo.js";
