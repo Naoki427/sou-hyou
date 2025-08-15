@@ -1,0 +1,43 @@
+name: Web Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { run_install: false }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm -v
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run lint
+        run: pnpm --filter @sou-hyou/web lint
+
+      - name: Type check
+        run: pnpm --filter @sou-hyou/web run tsc --noEmit
+
+      - name: Unit tests
+        run: pnpm --filter @sou-hyou/web test
+
+      - name: Build (only main push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @sou-hyou/web build
+        env:
+          NEXT_PUBLIC_GRAPHQL_URL: http://localhost:4000/graphql
+          NEXT_PUBLIC_FB_API_KEY: ${{ secrets.NEXT_PUBLIC_FB_API_KEY }}
+          NEXT_PUBLIC_FB_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FB_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FB_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FB_PROJECT_ID }}
