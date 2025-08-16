@@ -16,8 +16,17 @@ const fieldSchema = new Schema(
 
 const horseSchema = new Schema(
   {
-    name: { type: String, required: true },
-    predictionMark: { type: String, required: true }, // ◎, 〇, ▲, △ など
+    // ★ 空文字を許容したいので required を false にし、デフォルトで "" に
+    name: { type: String, required: false, trim: true, default: "" },
+
+    // 予想印は必須（muzirushi など）にしてOK
+    predictionMark: {
+      type: String,
+      enum: ["HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","MUZIRUSHI"],
+      required: true,
+      default: "MUZIRUSHI",
+    },
+
     fields: { type: [fieldSchema], default: [] },
   },
   { _id: false }
