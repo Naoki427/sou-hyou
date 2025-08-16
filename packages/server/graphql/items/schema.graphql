@@ -1,5 +1,15 @@
 enum FieldType { NUMBER SELECT COMMENT }
 enum ItemType { FOLDER MEMO }
+enum PredictionMark {
+  HONMEI
+  TAIKOU
+  TANNANA
+  RENSHITA
+  HOSHI
+  CHUUI
+  MUZIRUSHI
+}
+
 
 type Field { label: String!, type: FieldType!, value: JSON }
 type Horse { name: String!, predictionMark: String!, fields: [Field!]! }
@@ -18,8 +28,12 @@ type Item {
   updatedAt: String
 }
 
+input HorseInput {
+  name: String
+  predictionMark: PredictionMark
+  fields: [FieldInput!]
+}
 input FieldInput { label: String!, type: FieldType!, value: JSON }
-input HorseInput { name: String!, predictionMark: String!, fields: [FieldInput!] }
 input CreateMemoInput { name: String!, parentId: ID, horses: [HorseInput!] }
 input CreateFolderInput {
   name: String!

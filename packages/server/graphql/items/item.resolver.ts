@@ -2,6 +2,23 @@ import { GraphQLError } from "graphql";
 import Item from "../../models/Item.js";
 import User from "../../models/User.js";
 
+const ALLOWED_MARKS = new Set([
+  "HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","MUZIRUSHI",
+]);
+
+const normalizeMark = (v: unknown) => {
+  const mark = (v ?? "MUZIRUSHI").toString().toUpperCase();
+  if (!ALLOWED_MARKS.has(mark)) throw new GraphQLError("INVALID_PREDICTION_MARK");
+  return mark;
+};
+
+const normalizeName = (v: unknown) => {
+  if (typeof v !== "string") return "";
+  const name = v.trim();
+  if (name.length > 80) throw new GraphQLError("HORSE_NAME_TOO_LONG");
+  return name;
+};
+
 const requireUserId = async (ctx: any) => {
   if (!ctx?.user?.uid) throw new GraphQLError("UNAUTHENTICATED");
   const uid = ctx.user.uid as string;
@@ -114,15 +131,19 @@ export default {
       const path = joinPath(parentPath, input.name);
 
       const horses = (input.horses || []).map((h: any) => {
-        if (!h?.name || !h?.predictionMark) {
-          throw new GraphQLError("HORSE_NAME_AND_MARK_REQUIRED");
-        }
-        const fields = (h.fields || []).map((f: any) => {
+        const name = normalizeName(h?.name);
+        const predictionMark = normalizeMark(h?.predictionMark);
+
+        const fields = (h?.fields || []).map((f: any) => {
           if (!f?.label || !f?.type) throw new GraphQLError("FIELD_LABEL_AND_TYPE_REQUIRED");
-          // f.type は "number" | "select" | "comment" を想定
-          return { label: f.label, type: f.type.toUpperCase(), value: f.value ?? null };
+          return {
+            label: f.label,
+            type: f.type.toString().toUpperCase(),
+            value: f.value ?? null,
+          };
         });
-        return { name: h.name, predictionMark: h.predictionMark, fields };
+
+        return { name, predictionMark, fields };
       });
 
       try {
