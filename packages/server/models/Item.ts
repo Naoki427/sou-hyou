@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const { Schema, model, models } = mongoose;
 
-export type ItemType = "folder" | "memo";
+export type ItemType = "FOLDER" | "MEMO";
 
 const fieldSchema = new Schema(
   {
     label: { type: String, required: true },
-    type: { type: String, enum: ["number", "select", "comment"], required: true },
+    type: { type: String, enum: ["NUMBER", "SELECT", "COMMENT"], required: true },
     // MVPは柔軟さ優先で Mixed。必要に応じて文字列/数値に分離や JSON スキーマ化も可。
     value: { type: Schema.Types.Mixed, default: null },
   },
@@ -25,7 +25,7 @@ const horseSchema = new Schema(
 
 const itemSchema = new Schema(
   {
-    type: { type: String, enum: ["folder", "memo"], required: true, index: true },
+    type: { type: String, enum: ["FOLDER", "MEMO"], required: true, index: true },
     name: { type: String, required: true },
     path: { type: String, required: true }, // 例: /2025/7月/七夕賞
     parent: { type: Schema.Types.ObjectId, ref: "Item", default: null, index: true },

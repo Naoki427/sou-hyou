@@ -1,11 +1,12 @@
 enum FieldType { NUMBER SELECT COMMENT }
+enum ItemType { FOLDER MEMO }
 
 type Field { label: String!, type: FieldType!, value: JSON }
 type Horse { name: String!, predictionMark: String!, fields: [Field!]! }
 
 type Item {
   id: ID!
-  type: String!      # "folder" | "memo"
+  type: ItemType!
   name: String!
   path: String!
   parent: ID
@@ -28,6 +29,8 @@ input CreateFolderInput {
 extend type Query {
   myItems(parentId: ID): [Item!]!
   item(id: ID!): Item
+  itemByPath(path: String!): Item
+  myRecentMemos(limit: Int = 20): [Item!]!
 }
 
 extend type Mutation {
