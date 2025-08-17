@@ -7,6 +7,7 @@ enum PredictionMark {
   RENSHITA
   HOSHI
   CHUUI
+  KESHI
   MUZIRUSHI
 }
 
@@ -53,4 +54,21 @@ extend type Mutation {
 
 extend type Mutation {
   createFolder(input: CreateFolderInput!): Item!
+}
+
+extend type Mutation {
+  setHorseProp(
+    memoId: ID!
+    index: Int!
+    name: String
+    predictionMark: PredictionMark
+  ): Item!
+
+  setHorseFieldValue(
+    memoId: ID!
+    index: Int!
+    label: String!
+    type: FieldType!
+    value: JSON
+  ): Item!
 }
