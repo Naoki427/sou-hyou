@@ -10,6 +10,7 @@ type PredictionMark =
   | "RENSHITA"  // 連下
   | "HOSHI"     // ☆
   | "CHUUI"     // 注意
+  | "KESHI"     //消し
   | "MUZIRUSHI"; // 無印
 
 const DEFAULT_MARK: PredictionMark = "MUZIRUSHI";

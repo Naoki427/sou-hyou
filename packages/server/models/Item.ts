@@ -22,7 +22,7 @@ const horseSchema = new Schema(
     // 予想印は必須（muzirushi など）にしてOK
     predictionMark: {
       type: String,
-      enum: ["HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","MUZIRUSHI"],
+      enum: ["HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","KESHI","MUZIRUSHI"],
       required: true,
       default: "MUZIRUSHI",
     },

@@ -3,7 +3,7 @@ import Item from "../../models/Item.js";
 import User from "../../models/User.js";
 
 const ALLOWED_MARKS = new Set([
-  "HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","MUZIRUSHI",
+  "HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","KESHI","MUZIRUSHI",
 ]);
 
 const normalizeMark = (v: unknown) => {
@@ -17,6 +17,12 @@ const normalizeName = (v: unknown) => {
   const name = v.trim();
   if (name.length > 80) throw new GraphQLError("HORSE_NAME_TOO_LONG");
   return name;
+};
+
+const normalizeFieldType = (v: unknown) => {
+  const t = String(v).toUpperCase();
+  if (!["NUMBER","SELECT","COMMENT"].includes(t)) throw new GraphQLError("INVALID_FIELD_TYPE");
+  return t as "NUMBER"|"SELECT"|"COMMENT";
 };
 
 const requireUserId = async (ctx: any) => {
@@ -162,6 +168,78 @@ export default {
         if (e?.code === 11000) throw new GraphQLError("PATH_EXISTS");
         throw e;
       }
+    },
+     async setHorseProp(_: any, { memoId, index, name, predictionMark }: {
+      memoId: string; index: number; name?: string; predictionMark?: string;
+    }, ctx: any) {
+      const owner = await requireUserId(ctx);
+      if (index < 0) throw new GraphQLError("INDEX_OUT_OF_RANGE");
+
+      const doc = await Item.findOne({ _id: memoId, owner, type: "MEMO" });
+      if (!doc) throw new GraphQLError("MEMO_NOT_FOUND");
+      if (!Array.isArray(doc.horses) || index >= doc.horses.length) {
+        throw new GraphQLError("INDEX_OUT_OF_RANGE");
+      }
+
+      const nextName = normalizeName(name);
+      const nextMark = normalizeMark(predictionMark);
+
+      if (name !== undefined) {
+        doc.horses[index].name = normalizeName(name);
+      }
+      if (predictionMark !== undefined) {
+        doc.horses[index].predictionMark = normalizeMark(predictionMark);
+      }
+
+      await doc.save();
+      return doc;
+    },
+
+    async setHorseFieldValue(
+      _: any,
+      { memoId, index, label, type, value }: {
+        memoId: string; index: number; label: string; type: string; value: any;
+      },
+      ctx: any
+    ) {
+      const owner = await requireUserId(ctx);
+      if (index < 0) throw new GraphQLError("INDEX_OUT_OF_RANGE");
+
+      const doc = await Item.findOne({ _id: memoId, owner, type: "MEMO" });
+      if (!doc) throw new GraphQLError("MEMO_NOT_FOUND");
+      if (!Array.isArray(doc.horses) || index >= doc.horses.length) {
+        throw new GraphQLError("INDEX_OUT_OF_RANGE");
+      }
+
+      const horse = doc.horses[index];
+
+      const normLabel = (label ?? "").toString().trim();
+      if (!normLabel) throw new GraphQLError("FIELD_LABEL_REQUIRED");
+
+      const normType = normalizeFieldType(type);
+
+      // ★ 型を明示
+      type HorseField = { label: string; type: string; value: any | null };
+
+      const fields: HorseField[] = Array.isArray(horse.fields)
+        ? (horse.fields as HorseField[])
+        : (horse.fields = [] as unknown as HorseField[]);
+
+      const i = fields.findIndex((f) => f.label === normLabel);
+
+      if (i >= 0) {
+        // 既存：型違いはエラー（MVPで型変更不可）
+        const savedType = String(fields[i].type).toUpperCase();
+        if (savedType !== normType) throw new GraphQLError("FIELD_TYPE_MISMATCH");
+        fields[i].value = value ?? null;
+      } else {
+        // 新規作成（列が“増える”）
+        fields.push({ label: normLabel, type: normType, value: value ?? null });
+      }
+
+      doc.markModified("horses");
+      await doc.save();
+      return doc;
     },
   },
 };
