@@ -181,9 +181,6 @@ export default {
         throw new GraphQLError("INDEX_OUT_OF_RANGE");
       }
 
-      const nextName = normalizeName(name);
-      const nextMark = normalizeMark(predictionMark);
-
       if (name !== undefined) {
         doc.horses[index].name = normalizeName(name);
       }
