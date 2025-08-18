@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { MockedProvider } from "@apollo/client/testing";
 import type { ComponentType } from "react";
 
 // モック設定
@@ -28,21 +27,6 @@ const mockMemoItem = {
   updatedAt: "2024-01-14T09:15:00Z"
 };
 
-const mockRecentMemos = [
-  {
-    id: "memo1",
-    name: "最近のメモ1",
-    path: "/最近のメモ1",
-    updatedAt: "2024-01-15T12:00:00Z"
-  },
-  {
-    id: "memo2",
-    name: "最近のメモ2", 
-    path: "/フォルダ/最近のメモ2",
-    updatedAt: "2024-01-14T11:30:00Z"
-  }
-];
-
 async function loadItemTile(): Promise<ComponentType<any>> {
   const mod = await import("@/components/home/ItemTile");
   return mod.ItemTile as ComponentType<any>;
@@ -51,11 +35,6 @@ async function loadItemTile(): Promise<ComponentType<any>> {
 async function loadCreateTile(): Promise<ComponentType<any>> {
   const mod = await import("@/components/home/CreateTile");
   return mod.CreateTile as ComponentType<any>;
-}
-
-async function loadRecentMemosTile(): Promise<ComponentType<any>> {
-  const mod = await import("@/components/home/RecentMemosTile");
-  return mod.RecentMemosTile as ComponentType<any>;
 }
 
 async function loadItemGrid(): Promise<ComponentType<any>> {
