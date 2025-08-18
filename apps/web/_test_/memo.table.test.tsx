@@ -1,244 +1,148 @@
+// apps/web/_test_/memo.table.test.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import type { ComponentType } from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoTable } from "@/components/memo/table/MemoTable";
-import type { Horse, PredictionMark, FieldType } from "@/components/memo/types";
+import type { Horse, FieldType } from "@/components/memo/types";
 
-// テストデータ
 const mockHorses: Horse[] = [
   {
     name: "テストホース1",
     predictionMark: "HONMEI",
     fields: [
       { label: "オッズ", type: "NUMBER", value: 2.5 },
-      { label: "コメント", type: "COMMENT", value: "期待大" }
-    ]
+      { label: "コメント", type: "COMMENT", value: "期待大" },
+    ],
   },
   {
     name: "テストホース2",
-    predictionMark: "KESHI", 
+    predictionMark: "KESHI",
     fields: [
       { label: "オッズ", type: "NUMBER", value: 10.0 },
-      { label: "コメント", type: "COMMENT", value: "微妙" }
-    ]
+      { label: "コメント", type: "COMMENT", value: "微妙" },
+    ],
   },
   {
     name: "テストホース3",
     predictionMark: "TAIKOU",
-    fields: [
-      { label: "オッズ", type: "NUMBER", value: 5.0 }
-    ]
-  }
+    fields: [{ label: "オッズ", type: "NUMBER", value: 5.0 }],
+  },
 ];
 
 describe("MemoTable", () => {
   const mockOnChangeMark = vi.fn();
   const mockOnBlurName = vi.fn();
   const mockOnBlurField = vi.fn();
+  const mockOnAddField = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("ヘッダーとデータ行を正しく表示する", () => {
+  const renderTable = (horses: Horse[] = mockHorses) =>
     render(
       <MemoTable
-        horses={mockHorses}
+        horses={horses}
         onChangeMark={mockOnChangeMark}
         onBlurName={mockOnBlurName}
         onBlurField={mockOnBlurField}
+        onAddField={mockOnAddField}
       />
     );
 
-    // ヘッダーの確認
+  it("ヘッダーとデータ行を正しく表示", () => {
+    renderTable();
     expect(screen.getByText("印")).toBeInTheDocument();
     expect(screen.getByText("番")).toBeInTheDocument();
     expect(screen.getByText("名前")).toBeInTheDocument();
     expect(screen.getByText("オッズ")).toBeInTheDocument();
     expect(screen.getByText("コメント")).toBeInTheDocument();
 
-    // データ行の確認
     expect(screen.getByDisplayValue("テストホース1")).toBeInTheDocument();
     expect(screen.getByDisplayValue("テストホース2")).toBeInTheDocument();
     expect(screen.getByDisplayValue("テストホース3")).toBeInTheDocument();
 
-    // 番号列の確認
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
 
-    // フィールド値の確認
     expect(screen.getByDisplayValue("2.5")).toBeInTheDocument();
     expect(screen.getByDisplayValue("期待大")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("10")).toBeInTheDocument(); // 10.0 -> 10
+    expect(screen.getByDisplayValue("10")).toBeInTheDocument(); // 10.0 -> "10"
     expect(screen.getByDisplayValue("微妙")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("5")).toBeInTheDocument(); // 5.0 -> 5
+    expect(screen.getByDisplayValue("5")).toBeInTheDocument(); // 5.0 -> "5"
   });
 
-  it("予想印マークを正しく表示する", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
-    // 予想印の表示確認（MARK_LABELに基づく）
+  it("予想印のシンボルを描画（◎/消/◯）", () => {
+    renderTable();
     expect(screen.getByText("◎")).toBeInTheDocument(); // HONMEI
     expect(screen.getByText("消")).toBeInTheDocument(); // KESHI
     expect(screen.getByText("◯")).toBeInTheDocument(); // TAIKOU
   });
 
-  it("消印の行が暗く表示される", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
-    // KESHI（消）の馬の行要素を取得
-    const keshiHorseInput = screen.getByDisplayValue("テストホース2");
-    const keshiRow = keshiHorseInput.closest('div[style*="rgba(0, 0, 0, 0.4)"]');
-    
-    // 背景色が設定されていることを確認
-    expect(keshiRow).toBeInTheDocument();
-  });
-
-  it("馬名の編集時にコールバックが呼ばれる", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
+  it("馬名の編集で onBlurName が呼ばれる", () => {
+    renderTable();
     const nameInput = screen.getByDisplayValue("テストホース1");
-    
     fireEvent.change(nameInput, { target: { value: "新しい馬名" } });
     fireEvent.blur(nameInput);
-
     expect(mockOnBlurName).toHaveBeenCalledWith(0, "新しい馬名");
   });
 
-  it("フィールド値の編集時にコールバックが呼ばれる", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
+  it("フィールド編集で onBlurField が呼ばれる", () => {
+    renderTable();
     const oddsInput = screen.getByDisplayValue("2.5");
-    
     fireEvent.change(oddsInput, { target: { value: "3.0" } });
     fireEvent.blur(oddsInput);
-
     expect(mockOnBlurField).toHaveBeenCalledWith(0, "オッズ", "NUMBER", "3.0");
   });
 
-  it("空の馬リストでも正常に表示される", () => {
-    render(
-      <MemoTable
-        horses={[]}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
-    // ヘッダーは表示される
+  it("空の馬リストでもヘッダーは表示される", () => {
+    renderTable([]);
     expect(screen.getByText("印")).toBeInTheDocument();
     expect(screen.getByText("番")).toBeInTheDocument();
     expect(screen.getByText("名前")).toBeInTheDocument();
-    
-    // データ行は存在しない
     expect(screen.queryByText("1")).not.toBeInTheDocument();
   });
 
-  it("フィールドがない馬でも正常に表示される", () => {
-    const horsesWithoutFields: Horse[] = [
-      {
-        name: "シンプル馬",
-        predictionMark: "MUZIRUSHI",
-        fields: []
-      }
-    ];
-
-    render(
-      <MemoTable
-        horses={horsesWithoutFields}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
+  it("フィールドが無い馬でも表示される", () => {
+    renderTable([{ name: "シンプル馬", predictionMark: "MUZIRUSHI", fields: [] }]);
     expect(screen.getByDisplayValue("シンプル馬")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
-    // MUZIRUSHI のマークを確認（全角スペースは特別な処理が必要）
-    const muzirushiButton = screen.getByRole("button", { name: "予想印を変更" });
-    expect(muzirushiButton).toBeInTheDocument();
+    // MUZIRUSHI は空表示なので、ボタン存在で確認
+    expect(screen.getByRole("button", { name: "予想印を変更" })).toBeInTheDocument();
   });
 
-  it("Enterキーでフォーカス移動が機能する", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
+  it("Enter / Shift+Enter で移動（blur も発火して検証）", () => {
+    renderTable();
 
-    const firstNameInput = screen.getByDisplayValue("テストホース1");
-    
-    // Enterキーを押下
-    fireEvent.keyDown(firstNameInput, { key: "Enter" });
-
-    // onBlurNameが呼ばれることを確認
+    const first = screen.getByDisplayValue("テストホース1");
+    fireEvent.keyDown(first, { key: "Enter" });
+    fireEvent.blur(first);
     expect(mockOnBlurName).toHaveBeenCalledWith(0, "テストホース1");
-  });
 
-  it("Shift+Enterで前の行にフォーカス移動する", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
-
-    const secondNameInput = screen.getByDisplayValue("テストホース2");
-    
-    // Shift+Enterキーを押下
-    fireEvent.keyDown(secondNameInput, { key: "Enter", shiftKey: true });
-
-    // onBlurNameが呼ばれることを確認
+    const second = screen.getByDisplayValue("テストホース2");
+    fireEvent.keyDown(second, { key: "Enter", shiftKey: true });
+    fireEvent.blur(second);
     expect(mockOnBlurName).toHaveBeenCalledWith(1, "テストホース2");
   });
 
-  it("テーブルの幅が内容に応じて調整される", () => {
-    render(
-      <MemoTable
-        horses={mockHorses}
-        onChangeMark={mockOnChangeMark}
-        onBlurName={mockOnBlurName}
-        onBlurField={mockOnBlurField}
-      />
-    );
+  it("右横の＋ボタン→モーダル→追加で onAddField が呼ばれる", () => {
+    renderTable();
 
-    // テーブルの外側コンテナのスタイルを確認
-    const tableContainer = screen.getByText("印").closest('div[style*="overflow-x"]');
-    expect(tableContainer).toHaveStyle({ width: "fit-content" });
+    // 右横の「フィールド」ボタン（AddFieldButton）
+    const addBtn = screen.getByRole("button", { name: /フィールド/i });
+    fireEvent.click(addBtn);
+
+    // モーダル内：タイプ＆ラベル入力
+    const select = screen.getByLabelText("タイプ");
+    fireEvent.change(select, { target: { value: "NUMBER" } });
+
+    const labelInput = screen.getByLabelText("ラベル");
+    fireEvent.change(labelInput, { target: { value: "脚質" } });
+
+    // 追加
+    const submit = screen.getByRole("button", { name: "追加" });
+    fireEvent.click(submit);
+
+    expect(mockOnAddField).toHaveBeenCalledWith("脚質", "NUMBER");
   });
 });

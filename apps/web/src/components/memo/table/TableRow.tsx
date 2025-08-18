@@ -93,11 +93,13 @@ export function TableRow({
             isLast={isLastColumn}
             value={val}
             type={type}
-            placeholder={type === "SELECT" ? "選択値" : type === "NUMBER" ? "数値" : "コメント"}
             onBlur={(value) => onBlurField(label, type, value)}
           />
         );
       })}
+
+      {/* addFieldButton用の空の列
+      <div style={{ ...cell(colLabels.length + 3, true) }}></div> */}
     </div>
   );
 }

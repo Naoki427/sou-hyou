@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { Memo, FieldType, PredictionMark } from "./types";
 import { MemoTable } from "./table/MemoTable";
-import { GET_MEMO, SET_HORSE_PROP, SET_FIELD_VALUE } from "./queries";
+import { GET_MEMO, SET_HORSE_PROP, SET_FIELD_VALUE, ADD_FIELD_TO_MEMO } from "./queries";
 
 export function MemoPage(): React.JSX.Element {
   const params = useParams<{ id: string }>();
@@ -17,6 +17,7 @@ export function MemoPage(): React.JSX.Element {
   
   const [setHorseProp] = useMutation(SET_HORSE_PROP);
   const [setFieldValue] = useMutation(SET_FIELD_VALUE);
+  const [addFieldToMemo] = useMutation(ADD_FIELD_TO_MEMO);
   const [saving, setSaving] = useState(false);
   
   const memo: Memo = data?.item;
@@ -62,6 +63,14 @@ export function MemoPage(): React.JSX.Element {
       setSaving(false);
     }
   };
+  
+  const onAddField = async (label: string, type: FieldType) => {
+    setSaving(true);
+    try {
+      await addFieldToMemo({ variables: { memoId: memo.id, label, type } });
+      await refetch();
+    } finally { setSaving(false); }
+  };
 
   return (
     <div style={{ padding: 16 }}>
@@ -72,6 +81,7 @@ export function MemoPage(): React.JSX.Element {
         onChangeMark={onChangeMark}
         onBlurName={onBlurName}
         onBlurField={onBlurField}
+        onAddField={onAddField}
       />
 
       <div style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
