@@ -30,3 +30,12 @@ export const SET_FIELD_VALUE = gql`
     }
   }
 `;
+
+export const ADD_FIELD_TO_MEMO = gql`
+  mutation($memoId: ID!, $label: String!, $type: FieldType!) {
+    addFieldToMemo(memoId: $memoId, label: $label, type: $type) {
+      id
+      horses { name predictionMark fields { label type value } }
+    }
+  }
+`;

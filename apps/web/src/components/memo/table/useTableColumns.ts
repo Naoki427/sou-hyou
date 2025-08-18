@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Horse } from "../types";
 
 export function useTableColumns(horses: Horse[]) {
-  const MIN_W = 96;   // 列の最小幅(px)
-  const MAX_W = 560;  // 列の最大幅(px)
+  const MIN_W = 96;
+  const MAX_W = 560;
   
-  const [nameColW, setNameColW] = useState<number>(160);       // 馬名列
+  const [nameColW, setNameColW] = useState<number>(160);
   const [fieldColW, setFieldColW] = useState<number[]>([]);
   
-  // 列の合成（fields[].label のユニーク順）
   const colLabels: string[] = useMemo(() => {
     const set = new Set<string>();
     horses.forEach((h) => (h.fields ?? []).forEach((f) => set.add(f.label)));
@@ -50,12 +49,11 @@ export function useTableColumns(horses: Horse[]) {
     window.addEventListener("mouseup", onUp);
   }
 
-  // グリッドテンプレートの生成
   const gridTemplate = [
-    "56px",                            // 印
-    "42px",                            // 番号
-    `${nameColW}px`,                   // 馬名
-    ...fieldColW.map((w) => `${w}px`)  // 可変列
+    "56px",
+    "42px",
+    `${nameColW}px`,
+    ...fieldColW.map((w) => `${w}px`),
   ].join(" ");
 
   return {

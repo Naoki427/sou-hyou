@@ -6,6 +6,9 @@ const ALLOWED_MARKS = new Set([
   "HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","KESHI","MUZIRUSHI",
 ]);
 
+type FieldDoc = { label: string; type: string; value: unknown };
+type HorseDoc = { fields?: FieldDoc[] };
+
 const normalizeMark = (v: unknown) => {
   const mark = (v ?? "MUZIRUSHI").toString().toUpperCase();
   if (!ALLOWED_MARKS.has(mark)) throw new GraphQLError("INVALID_PREDICTION_MARK");
@@ -29,7 +32,6 @@ const requireUserId = async (ctx: any) => {
   if (!ctx?.user?.uid) throw new GraphQLError("UNAUTHENTICATED");
   const uid = ctx.user.uid as string;
   
-  // Firebase UIDからUser documentのObjectIdを取得
   const user = await User.findOne({ uid });
   if (!user) throw new GraphQLError("USER_NOT_FOUND");
   
@@ -215,7 +217,6 @@ export default {
 
       const normType = normalizeFieldType(type);
 
-      // ★ 型を明示
       type HorseField = { label: string; type: string; value: any | null };
 
       const fields: HorseField[] = Array.isArray(horse.fields)
@@ -225,12 +226,10 @@ export default {
       const i = fields.findIndex((f) => f.label === normLabel);
 
       if (i >= 0) {
-        // 既存：型違いはエラー（MVPで型変更不可）
         const savedType = String(fields[i].type).toUpperCase();
         if (savedType !== normType) throw new GraphQLError("FIELD_TYPE_MISMATCH");
         fields[i].value = value ?? null;
       } else {
-        // 新規作成（列が“増える”）
         fields.push({ label: normLabel, type: normType, value: value ?? null });
       }
 
@@ -238,5 +237,37 @@ export default {
       await doc.save();
       return doc;
     },
+   async addFieldToMemo(
+      _: unknown,
+      { memoId, label, type }: { memoId: string; label: string; type: string },
+      ctx: any
+    ) {
+      const owner = await requireUserId(ctx);
+
+      const normLabel = (label ?? "").toString().trim();
+      if (!normLabel) throw new GraphQLError("FIELD_LABEL_REQUIRED");
+      if (normLabel.length > 40) throw new GraphQLError("FIELD_LABEL_TOO_LONG");
+
+      const normType = normalizeFieldType(type);
+
+      const doc = await Item.findOne({ _id: memoId, owner, type: "MEMO" });
+      if (!doc) throw new GraphQLError("MEMO_NOT_FOUND");
+
+      const horses: HorseDoc[] = Array.isArray(doc.horses) ? (doc.horses as HorseDoc[]) : [];
+
+      const exists = horses.some((h: HorseDoc) =>
+        (h.fields ?? []).some((f: FieldDoc) => String(f.label) === normLabel)
+      );
+      if (exists) throw new GraphQLError("FIELD_LABEL_EXISTS");
+
+      horses.forEach((horse: HorseDoc) => {
+        if (!Array.isArray(horse.fields)) horse.fields = [];
+        horse.fields.push({ label: normLabel, type: normType, value: null });
+      });
+
+      doc.markModified("horses");
+      await doc.save();
+      return doc;
+    }
   },
 };
