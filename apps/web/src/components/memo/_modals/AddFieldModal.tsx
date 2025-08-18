@@ -38,7 +38,7 @@ export function AddFieldModal({ open, onClose, onSubmit }: Props) {
             <span style={labelCss}>タイプ</span>
             <select value={type} onChange={(e) => setType(e.target.value as FieldType)} style={input}>
               <option value="NUMBER">数値</option>
-              <option value="SELECT">選択</option>
+              {/* <option value="SELECT">選択</option> */}
               <option value="COMMENT">コメント</option>
             </select>
           </label>

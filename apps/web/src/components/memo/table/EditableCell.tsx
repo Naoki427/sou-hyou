@@ -50,6 +50,7 @@ export function EditableCell({
       <input
         ref={inputRef}
         inputMode={type === "NUMBER" ? "decimal" : undefined}
+        type={type === "NUMBER" ? "number" : undefined}
         defaultValue={displayValue}
         onBlur={handleBlur}
         onKeyDown={onKeyDown}
