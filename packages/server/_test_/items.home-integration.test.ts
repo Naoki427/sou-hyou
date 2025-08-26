@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, test, expect, vi } from "vitest";
-vi.mock("../services/firebaseAdmin.js", () => ({
+vi.mock("../src/services/firebaseAdmin.js", () => ({
   getFirebaseAuth: () => ({
     verifyIdToken: async (token: string) =>
       token?.includes("userB")
