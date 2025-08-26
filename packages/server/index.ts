@@ -1,6 +1,6 @@
 import "dotenv/config";
 import http from "http";
-import { connectDb } from "./services/db.js";
+import { connectDb } from "./src/services/db.js";
 import { buildApp } from "./src/server.js";
 
 const PORT = Number(process.env.PORT) || 4000;
@@ -13,7 +13,7 @@ async function main() {
 
   const server = http.createServer(app);
   server.listen(PORT, () => {
-    console.log(`🚀 Apollo Server ready at http://localhost:${PORT}/graphql`);
+    console.log(`🚀 Apollo Server listening on port ${PORT}`);
   });
 }
 
