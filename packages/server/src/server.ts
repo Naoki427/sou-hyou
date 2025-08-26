@@ -31,6 +31,8 @@ export async function buildApp(opts: { webOrigin: string }) {
       }
       return cb(new Error("Not allowed by CORS"));
     },
+    // 開発時はこれでいい
+    // origin: (origin: string | undefined, cb: any) => cb(null, true),
     methods: ["GET","POST","OPTIONS"],
     allowedHeaders: ["Content-Type","Authorization"],
     credentials: true,

@@ -56,6 +56,16 @@ extend type Mutation {
   createFolder(input: CreateFolderInput!): Item!
 }
 
+type DeleteItemPayload {
+  success: Boolean!
+  deletedId: ID!
+  deletedItem: Item
+}
+
+extend type Mutation {
+  deleteItem(id: ID!): DeleteItemPayload!
+}
+
 extend type Mutation {
   setHorseProp(
     memoId: ID!

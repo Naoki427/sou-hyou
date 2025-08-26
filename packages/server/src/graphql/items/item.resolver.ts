@@ -171,7 +171,19 @@ export default {
         throw e;
       }
     },
-     async setHorseProp(_: any, { memoId, index, name, predictionMark }: {
+
+    deleteItem: async (_: any, { id }: { id:string }, ctx: any) => {
+      const owner = await requireUserId(ctx);
+
+      const deletedItem = await Item.findOneAndDelete({ _id: id, owner});
+      if (!deletedItem) {
+        return { success: false, deletedId: id, deletedItem: null };
+      }
+      return { success: true, deletedId: id, deletedItem };
+
+    },
+
+    async setHorseProp(_: any, { memoId, index, name, predictionMark }: {
       memoId: string; index: number; name?: string; predictionMark?: string;
     }, ctx: any) {
       const owner = await requireUserId(ctx);
