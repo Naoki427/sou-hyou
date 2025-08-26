@@ -6,8 +6,9 @@
 
     "outDir": "dist",
     "rootDir": ".",
+    "noEmit": false,
 
     "sourceMap": true
   },
-  "include": ["./**/*.ts"]
+  "include": ["src/**/*.ts", "index.ts"]
 }
