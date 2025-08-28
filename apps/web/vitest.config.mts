@@ -12,6 +12,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      "styled-jsx": path.resolve(__dirname, "../../node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.28.3_react@19.1.0/node_modules/styled-jsx"),
+      "styled-jsx/style": path.resolve(__dirname, "../../node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.28.3_react@19.1.0/node_modules/styled-jsx/style.js"),
     },
+  },
+  define: {
+    __STYLED_JSX__: true,
   },
 });

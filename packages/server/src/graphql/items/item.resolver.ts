@@ -1,6 +1,21 @@
 import { GraphQLError } from "graphql";
 import Item from "../../models/Item.js";
 import User from "../../models/User.js";
+import type {
+  QueryMyItemsArgs,
+  QueryItemArgs,
+  QueryItemByPathArgs,
+  QueryMyRecentMemosArgs,
+  MutationCreateFolderArgs,
+  MutationCreateMemoArgs,
+  MutationDeleteItemArgs,
+  MutationSetHorsePropArgs,
+  MutationSetHorseFieldValueArgs,
+  MutationAddFieldToMemoArgs,
+  MutationUpdateItemArgs,
+  FieldType,
+  Resolvers
+} from "../../types/generated.js";
 
 const ALLOWED_MARKS = new Set([
   "HONMEI","TAIKOU","TANNANA","RENSHITA","HOSHI","CHUUI","KESHI","MUZIRUSHI",
@@ -22,13 +37,19 @@ const normalizeName = (v: unknown) => {
   return name;
 };
 
-const normalizeFieldType = (v: unknown) => {
+const normalizeFieldType = (v: unknown): FieldType => {
   const t = String(v).toUpperCase();
   if (!["NUMBER","SELECT","COMMENT"].includes(t)) throw new GraphQLError("INVALID_FIELD_TYPE");
-  return t as "NUMBER"|"SELECT"|"COMMENT";
+  return t as FieldType;
 };
 
-const requireUserId = async (ctx: any) => {
+interface Context {
+  user?: {
+    uid: string;
+  };
+}
+
+const requireUserId = async (ctx: Context) => {
   if (!ctx?.user?.uid) throw new GraphQLError("UNAUTHENTICATED");
   const uid = ctx.user.uid as string;
   
@@ -42,12 +63,12 @@ const toSegment = (name: string) => name.trim().replace(/\//g, "-");
 const joinPath = (parentPath: string | null, name: string) =>
   parentPath ? `${parentPath}/${toSegment(name)}` : `/${toSegment(name)}`;
 
-export default {
+const resolvers: Resolvers<Context> = {
   Query: {
-    myItems: async (_: unknown, { parentId }: { parentId?: string | null }, ctx: any) => {
+    myItems: async (_, { parentId }: QueryMyItemsArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
 
-      const q: any = { owner: userId };
+      const q: Record<string, unknown> = { owner: userId };
       if (parentId === undefined || parentId === null || parentId === "") {
         q.parent = null;
       } else {
@@ -57,12 +78,12 @@ export default {
       return Item.find(q).sort({ type: 1, createdAt: -1 });
     },
 
-    item: async (_: unknown, { id }: { id: string }, ctx: any) => {
+    item: async (_, { id }: QueryItemArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
       return Item.findOne({ _id: id, owner: userId });
     },
 
-    itemByPath: async (_: unknown, { path }: { path: string }, ctx: any) => {
+    itemByPath: async (_, { path }: QueryItemByPathArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
       const doc = await Item.findOne({ owner: userId, path });
       if (!doc) return null;
@@ -70,9 +91,10 @@ export default {
       return doc;
     },
 
-    myRecentMemos: async (_: unknown, { limit = 20 }: { limit?: number }, ctx: any) => {
+    myRecentMemos: async (_, { limit }: QueryMyRecentMemosArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
-      const n = Math.max(1, Math.min(limit, 100));
+      const normalizedLimit = limit ?? 20;
+      const n = Math.max(1, Math.min(normalizedLimit, 100));
       return Item.find({ owner: userId, type: "MEMO" })
         .sort({ updatedAt: -1 })
         .limit(n);
@@ -80,11 +102,11 @@ export default {
   },
 
   Mutation: {
-    createFolder: async (_: unknown, { input }: any, ctx: any) => {
+    createFolder: async (_, { input }: MutationCreateFolderArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
 
-      let parentDoc: any = null;
-      let ancestors: any[] = [];
+      let parentDoc: typeof Item.prototype | null = null;
+      let ancestors: string[] = [];
       let depth = 0;
       let parentPath: string | null = null;
 
@@ -112,17 +134,17 @@ export default {
           horses: [],
         });
         return doc;
-      } catch (e: any) {
-        if (e?.code === 11000) throw new GraphQLError("PATH_EXISTS");
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 11000) throw new GraphQLError("PATH_EXISTS");
         throw e;
       }
     },
 
-    createMemo: async (_: unknown, { input }: any, ctx: any) => {
+    createMemo: async (_, { input }: MutationCreateMemoArgs, ctx: Context) => {
       const userId = await requireUserId(ctx);
 
-      let parentDoc: any = null;
-      let ancestors: any[] = [];
+      let parentDoc: typeof Item.prototype | null = null;
+      let ancestors: string[] = [];
       let depth = 0;
       let parentPath: string | null = null;
 
@@ -138,11 +160,11 @@ export default {
 
       const path = joinPath(parentPath, input.name);
 
-      const horses = (input.horses || []).map((h: any) => {
+      const horses = (input.horses || []).map((h) => {
         const name = normalizeName(h?.name);
         const predictionMark = normalizeMark(h?.predictionMark);
 
-        const fields = (h?.fields || []).map((f: any) => {
+        const fields = (h?.fields || []).map((f) => {
           if (!f?.label || !f?.type) throw new GraphQLError("FIELD_LABEL_AND_TYPE_REQUIRED");
           return {
             label: f.label,
@@ -166,13 +188,13 @@ export default {
           horses,
         });
         return doc;
-      } catch (e: any) {
-        if (e?.code === 11000) throw new GraphQLError("PATH_EXISTS");
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 11000) throw new GraphQLError("PATH_EXISTS");
         throw e;
       }
     },
 
-    deleteItem: async (_: any, { id }: { id:string }, ctx: any) => {
+    deleteItem: async (_, { id }: MutationDeleteItemArgs, ctx: Context) => {
       const owner = await requireUserId(ctx);
 
       const deletedItem = await Item.findOneAndDelete({ _id: id, owner});
@@ -183,9 +205,76 @@ export default {
 
     },
 
-    async setHorseProp(_: any, { memoId, index, name, predictionMark }: {
-      memoId: string; index: number; name?: string; predictionMark?: string;
-    }, ctx: any) {
+    updateItem: async (_, { input }: MutationUpdateItemArgs, ctx: Context) => {
+      const userId = await requireUserId(ctx);
+      
+      const item = await Item.findOne({ _id: input.id, owner: userId });
+      if (!item) {
+        return { success: false, updatedItem: null };
+      }
+
+      if (input.name !== undefined && input.name !== null) {
+        item.name = input.name;
+        
+        const parentPath = item.parent 
+          ? (await Item.findById(item.parent))?.path || null 
+          : null;
+        item.path = joinPath(parentPath, input.name);
+      }
+
+      if (input.parentId !== undefined) {
+        if (input.parentId === null) {
+          item.parent = null;
+          item.ancestors = [];
+          item.depth = 0;
+          if (input.name) {
+            item.path = joinPath(null, input.name);
+          }
+        } else {
+          const parentDoc = await Item.findOne({ _id: input.parentId, owner: userId });
+          if (!parentDoc) throw new GraphQLError("PARENT_NOT_FOUND");
+          if (parentDoc.type !== "FOLDER") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
+          
+          item.parent = parentDoc._id;
+          item.ancestors = [...(parentDoc.ancestors || []), parentDoc._id];
+          item.depth = (parentDoc.depth || 0) + 1;
+          if (input.name) {
+            item.path = joinPath(parentDoc.path, input.name);
+          }
+        }
+      }
+
+      if (input.horses !== undefined && input.horses !== null && item.type === "MEMO") {
+        const horses = input.horses.map((h) => {
+          const name = normalizeName(h?.name);
+          const predictionMark = normalizeMark(h?.predictionMark);
+
+          const fields = (h?.fields || []).map((f) => {
+            if (!f?.label || !f?.type) throw new GraphQLError("FIELD_LABEL_AND_TYPE_REQUIRED");
+            return {
+              label: f.label,
+              type: f.type.toString().toUpperCase(),
+              value: f.value ?? null,
+            };
+          });
+
+          return { name, predictionMark, fields };
+        });
+        item.horses = horses;
+      }
+
+      try {
+        const updatedItem = await item.save();
+        return { success: true, updatedItem };
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 11000) {
+          throw new GraphQLError("PATH_EXISTS");
+        }
+        throw e;
+      }
+    },
+
+    async setHorseProp(_, { memoId, index, name, predictionMark }: MutationSetHorsePropArgs, ctx: Context) {
       const owner = await requireUserId(ctx);
       if (index < 0) throw new GraphQLError("INDEX_OUT_OF_RANGE");
 
@@ -207,11 +296,9 @@ export default {
     },
 
     async setHorseFieldValue(
-      _: any,
-      { memoId, index, label, type, value }: {
-        memoId: string; index: number; label: string; type: string; value: any;
-      },
-      ctx: any
+      _,
+      { memoId, index, label, type, value }: MutationSetHorseFieldValueArgs,
+      ctx: Context
     ) {
       const owner = await requireUserId(ctx);
       if (index < 0) throw new GraphQLError("INDEX_OUT_OF_RANGE");
@@ -229,7 +316,7 @@ export default {
 
       const normType = normalizeFieldType(type);
 
-      type HorseField = { label: string; type: string; value: any | null };
+      type HorseField = { label: string; type: string; value: unknown | null };
 
       const fields: HorseField[] = Array.isArray(horse.fields)
         ? (horse.fields as HorseField[])
@@ -250,9 +337,9 @@ export default {
       return doc;
     },
    async addFieldToMemo(
-      _: unknown,
-      { memoId, label, type }: { memoId: string; label: string; type: string },
-      ctx: any
+      _,
+      { memoId, label, type }: MutationAddFieldToMemoArgs,
+      ctx: Context
     ) {
       const owner = await requireUserId(ctx);
 
@@ -265,7 +352,7 @@ export default {
       const doc = await Item.findOne({ _id: memoId, owner, type: "MEMO" });
       if (!doc) throw new GraphQLError("MEMO_NOT_FOUND");
 
-      const horses: HorseDoc[] = Array.isArray(doc.horses) ? (doc.horses as HorseDoc[]) : [];
+      const horses: HorseDoc[] = Array.isArray(doc.horses) ? doc.horses as HorseDoc[] : [];
 
       const exists = horses.some((h: HorseDoc) =>
         (h.fields ?? []).some((f: FieldDoc) => String(f.label) === normLabel)
@@ -274,7 +361,7 @@ export default {
 
       horses.forEach((horse: HorseDoc) => {
         if (!Array.isArray(horse.fields)) horse.fields = [];
-        horse.fields.push({ label: normLabel, type: normType, value: null });
+        (horse.fields as FieldDoc[]).push({ label: normLabel, type: normType, value: null });
       });
 
       doc.markModified("horses");
@@ -283,3 +370,5 @@ export default {
     }
   },
 };
+
+export default resolvers;

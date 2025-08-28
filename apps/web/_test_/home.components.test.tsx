@@ -60,9 +60,10 @@ describe("Home Components", () => {
       expect(link).toHaveAttribute("href", "/home/テストフォルダ");
       expect(link).toHaveAttribute("title", "テストフォルダ");
       
-      // フォルダアイコンが表示されることを確認（SVGがある）
-      const svg = link.querySelector("svg");
-      expect(svg).toBeInTheDocument();
+      // フォルダアイコンが表示されることを確認（Imageがある）
+      const img = link.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", "/folder.svg");
     });
 
     it("メモアイテムが正しく表示される", async () => {
@@ -77,9 +78,10 @@ describe("Home Components", () => {
       expect(link).toHaveAttribute("href", "/home/テストメモ");
       expect(link).toHaveAttribute("title", "テストメモ");
       
-      // メモアイコンが表示されることを確認（SVGがある）
-      const svg = link.querySelector("svg");
-      expect(svg).toBeInTheDocument();
+      // メモアイコンが表示されることを確認（Imageがある）
+      const img = link.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", "/memo.svg");
     });
 
     it("フォルダクリックで正しいパスに遷移する", async () => {
@@ -124,9 +126,10 @@ describe("Home Components", () => {
       const button = screen.getByRole("button");
       expect(button).toHaveAttribute("aria-label", "フォルダを作成");
       
-      // SVGアイコンが表示されている
-      const svg = button.querySelector("svg");
-      expect(svg).toBeInTheDocument();
+      // アイコンが表示されている（Image要素）
+      const img = button.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", "/add_folder.svg");
     });
 
     it("メモ作成タイルが正しく表示される", async () => {
@@ -139,9 +142,10 @@ describe("Home Components", () => {
       const button = screen.getByRole("button");
       expect(button).toHaveAttribute("aria-label", "メモを作成");
       
-      // SVGアイコンが表示されている
-      const svg = button.querySelector("svg");
-      expect(svg).toBeInTheDocument();
+      // アイコンが表示されている（Image要素）
+      const img = button.querySelector("img");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", "/add_memo.svg");
     });
 
     it("ボタンクリックでカスタムイベントが発火される", async () => {

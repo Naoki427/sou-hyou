@@ -66,6 +66,22 @@ extend type Mutation {
   deleteItem(id: ID!): DeleteItemPayload!
 }
 
+input UpdateItemInput {
+  id: ID!
+  name: String
+  parentId: ID
+  horses: [HorseInput!]
+}
+
+type UpdateItemPayload {
+  success: Boolean!
+  updatedItem: Item
+}
+
+extend type Mutation {
+  updateItem(input: UpdateItemInput!): UpdateItemPayload!
+}
+
 extend type Mutation {
   setHorseProp(
     memoId: ID!
