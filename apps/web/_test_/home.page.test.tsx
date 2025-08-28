@@ -133,6 +133,39 @@ const mocks = [
   },
   {
     request: {
+      query: RECENT,
+      variables: { limit: 5 }
+    },
+    result: {
+      data: {
+        myRecentMemos: mockRecentMemos
+      }
+    }
+  },
+  {
+    request: {
+      query: RECENT,
+      variables: { limit: 5 }
+    },
+    result: {
+      data: {
+        myRecentMemos: mockRecentMemos
+      }
+    }
+  },
+  {
+    request: {
+      query: RECENT,
+      variables: { limit: 5 }
+    },
+    result: {
+      data: {
+        myRecentMemos: mockRecentMemos
+      }
+    }
+  },
+  {
+    request: {
       query: ITEM_BY_PATH,
       variables: { path: "/" }
     },

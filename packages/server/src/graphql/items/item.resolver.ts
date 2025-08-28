@@ -12,6 +12,7 @@ import type {
   MutationSetHorsePropArgs,
   MutationSetHorseFieldValueArgs,
   MutationAddFieldToMemoArgs,
+  MutationUpdateItemArgs,
   FieldType,
   Resolvers
 } from "../../types/generated.js";
@@ -202,6 +203,75 @@ const resolvers: Resolvers<Context> = {
       }
       return { success: true, deletedId: id, deletedItem };
 
+    },
+
+    updateItem: async (_, { input }: MutationUpdateItemArgs, ctx: Context) => {
+      const userId = await requireUserId(ctx);
+      
+      const item = await Item.findOne({ _id: input.id, owner: userId });
+      if (!item) {
+        return { success: false, updatedItem: null };
+      }
+
+      if (input.name !== undefined && input.name !== null) {
+        item.name = input.name;
+        
+        const parentPath = item.parent 
+          ? (await Item.findById(item.parent))?.path || null 
+          : null;
+        item.path = joinPath(parentPath, input.name);
+      }
+
+      if (input.parentId !== undefined) {
+        if (input.parentId === null) {
+          item.parent = null;
+          item.ancestors = [];
+          item.depth = 0;
+          if (input.name) {
+            item.path = joinPath(null, input.name);
+          }
+        } else {
+          const parentDoc = await Item.findOne({ _id: input.parentId, owner: userId });
+          if (!parentDoc) throw new GraphQLError("PARENT_NOT_FOUND");
+          if (parentDoc.type !== "FOLDER") throw new GraphQLError("PARENT_MUST_BE_FOLDER");
+          
+          item.parent = parentDoc._id;
+          item.ancestors = [...(parentDoc.ancestors || []), parentDoc._id];
+          item.depth = (parentDoc.depth || 0) + 1;
+          if (input.name) {
+            item.path = joinPath(parentDoc.path, input.name);
+          }
+        }
+      }
+
+      if (input.horses !== undefined && input.horses !== null && item.type === "MEMO") {
+        const horses = input.horses.map((h) => {
+          const name = normalizeName(h?.name);
+          const predictionMark = normalizeMark(h?.predictionMark);
+
+          const fields = (h?.fields || []).map((f) => {
+            if (!f?.label || !f?.type) throw new GraphQLError("FIELD_LABEL_AND_TYPE_REQUIRED");
+            return {
+              label: f.label,
+              type: f.type.toString().toUpperCase(),
+              value: f.value ?? null,
+            };
+          });
+
+          return { name, predictionMark, fields };
+        });
+        item.horses = horses;
+      }
+
+      try {
+        const updatedItem = await item.save();
+        return { success: true, updatedItem };
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 11000) {
+          throw new GraphQLError("PATH_EXISTS");
+        }
+        throw e;
+      }
     },
 
     async setHorseProp(_, { memoId, index, name, predictionMark }: MutationSetHorsePropArgs, ctx: Context) {
