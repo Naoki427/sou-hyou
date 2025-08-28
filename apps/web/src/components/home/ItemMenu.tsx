@@ -8,18 +8,23 @@ type AnchorRef =
 
 export default function ItemMenu({
   anchorRef,
+  itemId,
+  itemName,
   onRename,
   onDelete,
 }: {
   anchorRef: AnchorRef;
-  onRename: () => void;
-  onDelete: () => void;
+  itemId: string;
+  itemName?: string;
+  onRename?: () => void;
+  onDelete?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement | null>(null);
   const MENU_WIDTH = 200;
 
+  // アンカー（3点ボタン）押下でトグル & 位置算出
   useEffect(() => {
     const btn = anchorRef.current;
     if (!btn) return;
@@ -28,7 +33,10 @@ export default function ItemMenu({
       e.stopPropagation();
       const r = btn.getBoundingClientRect();
       const top = Math.min(window.innerHeight - 8, r.bottom + 4);
-      const left = Math.min(window.innerWidth - 8 - MENU_WIDTH, Math.max(8, r.right - MENU_WIDTH));
+      const left = Math.min(
+        window.innerWidth - 8 - MENU_WIDTH,
+        Math.max(8, r.right - MENU_WIDTH)
+      );
       setPos({ top, left });
       setOpen((v) => !v);
     };
@@ -36,6 +44,7 @@ export default function ItemMenu({
     return () => btn.removeEventListener("pointerdown", onBtnDown, true);
   }, [anchorRef]);
 
+  // 外側クリックで閉じる
   useEffect(() => {
     if (!open) return;
     const onDocDown = (e: Event) => {
@@ -46,6 +55,7 @@ export default function ItemMenu({
     return () => document.removeEventListener("pointerdown", onDocDown, true);
   }, [open]);
 
+  // Esc / スクロール / リサイズで閉じる
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -59,6 +69,26 @@ export default function ItemMenu({
       window.removeEventListener("resize", onScrollOrResize, true);
     };
   }, [open]);
+
+  const fireRename = () => {
+    setOpen(false);
+    if (onRename) return onRename();
+    window.dispatchEvent(
+      new CustomEvent("open-rename-item", {
+        detail: { id: itemId, name: itemName ?? "" },
+      })
+    );
+  };
+
+  const fireDelete = () => {
+    setOpen(false);
+    if (onDelete) return onDelete();
+    window.dispatchEvent(
+      new CustomEvent("open-delete-item", {
+        detail: { id: itemId, name: itemName ?? "" },
+      })
+    );
+  };
 
   if (!open) return null;
 
@@ -78,11 +108,18 @@ export default function ItemMenu({
         zIndex: 10000,
         padding: 4,
       }}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      onPointerDown={(e) => {
+        // メニュー内での操作で外側ハンドラが走らないように
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
     >
-      <MenuBtn onClick={() => { setOpen(false); onRename(); }}>名前を変更</MenuBtn>
+      <MenuBtn onClick={fireRename}>名前を変更</MenuBtn>
       <hr style={{ margin: "6px 0", border: 0, borderTop: "1px solid #eee" }} />
-      <MenuBtn danger onClick={() => { setOpen(false); onDelete(); }}>削除</MenuBtn>
+      <MenuBtn danger onClick={fireDelete}>削除</MenuBtn>
     </div>,
     document.body
   );
@@ -101,7 +138,10 @@ function MenuBtn({
     <button
       type="button"
       onClick={onClick}
-      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       style={{
         display: "block",
         width: "100%",
@@ -114,8 +154,12 @@ function MenuBtn({
         color: danger ? "#b91c1c" : "inherit",
         borderRadius: 6,
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#f9fafb"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = "#f9fafb";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+      }}
     >
       {children}
     </button>

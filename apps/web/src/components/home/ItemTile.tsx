@@ -73,7 +73,6 @@ export function ItemTile({ item }: { item: Item }) {
         </div>
       </Link>
 
-      {/* 右上の 3 点ボタン（Link の外・絶対配置） */}
       <button
         ref={anchorRef}
         type="button"
@@ -104,8 +103,8 @@ export function ItemTile({ item }: { item: Item }) {
 
       <ItemMenu
         anchorRef={anchorRef}
-        onRename={() => console.log("rename", item)}
-        onDelete={() => console.log("delete", item)}
+        itemId={item.id}
+        itemName={item.name}
       />
     </div>
   );
