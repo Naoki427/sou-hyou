@@ -16,7 +16,7 @@ RUN corepack enable
 WORKDIR /app
 COPY . .
 # オフラインで server だけインストール（fetch 済）
-RUN pnpm install --filter @sou-hyou/server --offline
+RUN pnpm install --filter @sou-hyou/server --frozen-lockfile
 RUN pnpm -F @sou-hyou/server build
 
 # ---- deploy: 本番用の最小パッケージを作る ----
