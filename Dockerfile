@@ -1,51 +1,34 @@
-# ---- deps: 共通依存をキャッシュ ----
-FROM node:20-alpine AS deps
-RUN corepack enable
-WORKDIR /app
-
-# ワークスペースのメタ情報と server の package.json だけコピー
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY packages/server/package.json packages/server/
-
-# 依存をインストール（devDeps 含む） → build ステージ用
-RUN pnpm install --frozen-lockfile
-
-# ---- build: TypeScript をコンパイル ----
+# ===== build: TypeScript をコンパイル =====
 FROM node:20-alpine AS build
 RUN corepack enable
 WORKDIR /app
 
-# 全体コピーして build 実行
+# まず全体をコピー（ワークスペース依存も解決したいので丸ごと）
 COPY . .
-COPY --from=deps /app/node_modules ./node_modules
 
-# server パッケージを build (tsc)
+# devDependencies 含めてインストール（tsc 等が必要）
+RUN pnpm install --frozen-lockfile
+
+# server パッケージのみビルド（tsc）
 RUN pnpm -F @sou-hyou/server build
 
-# ---- deploy: 本番用の最小成果物を作成 ----
-FROM node:20-alpine AS deploy
-RUN corepack enable
-WORKDIR /app
 
-# server の package.json と lockfile をコピー
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY packages/server/package.json packages/server/
-
-# 本番依存だけインストール
-RUN pnpm install --prod --filter @sou-hyou/server --frozen-lockfile
-
-# build 成果物をコピー
-COPY --from=build /app/packages/server/dist ./dist
-# GraphQL スキーマなど静的ファイルも必要ならコピー
-COPY packages/server/src/graphql ./dist/src/graphql
-
-# ---- runner: 実行ステージ ----
+# ===== runner: 本番実行用（prod 依存のみ） =====
 FROM node:20-alpine AS runner
+RUN corepack enable
 WORKDIR /app
 ENV NODE_ENV=production
 
-# deploy 成果物をコピー
-COPY --from=deploy /app .
+# prod 依存だけを再インストール（ワークスペース最小構成でOK）
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/server/package.json packages/server/
+RUN pnpm install --prod --filter @sou-hyou/server --frozen-lockfile
+
+# ビルド済みの dist を配置
+COPY --from=build /app/packages/server/dist ./dist
+
+# GraphQL スキーマなど静的ファイルが必要なら同梱
+COPY packages/server/src/graphql ./dist/src/graphql
 
 EXPOSE 4000
 CMD ["node", "dist/index.js"]
