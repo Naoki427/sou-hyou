@@ -11,6 +11,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
+import Image from "next/image";
 
 const schema = yup.object({
   email: yup.string().email("メール形式が正しくありません").required("メールは必須です"),
@@ -105,13 +106,14 @@ export default function AuthForm({ mode }: { mode: "register" | "login" }) {
           display: "flex", alignItems: "center", gap: 8, justifyContent: "center", cursor: "pointer",
         }}
       >
-        {/* 簡易Googleアイコン */}
-        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
-          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.6 33.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 6 .9 8.3 3l5.7-5.7C34.4 6.3 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11.1 0 20-8.9 20-20 0-1.3-.1-2.4-.4-3.5z"/>
-          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.9 18.9 13 24 13c3.1 0 6 .9 8.3 3l5.7-5.7C34.4 6.3 29.4 4 24 4c-7.7 0-14.3 4.3-17.7 10.7z"/>
-          <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.5-5.2l-6.2-5c-2 1.4-4.6 2.2-7.3 2.2-5.3 0-9.7-3.3-11.3-7.9l-6.6 5.1C7.6 39.8 15.2 44 24 44z"/>
-          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.3 3.7-4.9 6.5-9.3 6.5-3.3 0-6.1-1.7-7.7-4.3l-6.6 5.1C14.8 39.7 19.1 42 24 42c11.1 0 20-8.9 20-20 0-1.3-.1-2.4-.4-3.5z"/>
-        </svg>
+        <Image
+          src="/google.png"
+          alt=""
+          aria-hidden
+          width={32}
+          height={32}
+          style={{ display: "block" }}
+        />
         Google で続行
       </button>
 
