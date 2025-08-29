@@ -16,6 +16,7 @@ export default function Page() {
     <GuestOnly>
       <div style={{ padding: 24 }}>
         <h1>これはルートページです</h1>
+        <div>デプロイテスト用メッセージ</div>
         <HealthCheck />
         <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
           <Link

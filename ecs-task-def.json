@@ -1,0 +1,36 @@
+{
+  "family": "sou-hyou-server",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "3072",
+  "executionRoleArn": "arn:aws:iam::405894839372:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::405894839372:role/souhyou-task-role",
+  "runtimePlatform": { "cpuArchitecture": "ARM64", "operatingSystemFamily": "LINUX" },
+  "containerDefinitions": [
+    {
+      "name": "souhyou-apollo-container",
+      "image": "405894839372.dkr.ecr.ap-northeast-1.amazonaws.com/sou-hyou-server:dummy",
+      "essential": true,
+      "portMappings": [{ "containerPort": 4000, "protocol": "tcp", "appProtocol": "http" }],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/sou-hyou-server",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      },
+      "environment": [
+        { "name": "PORT", "value": "4000" },
+        { "name": "WEB_ORIGIN", "value": "https://souhyou.com" }
+      ],
+      "secrets": [
+        { "name": "MONGO_URI", "valueFrom": "arn:aws:ssm:ap-northeast-1:405894839372:parameter/prod/MONGO_URI" },
+        { "name": "FIREBASE_SERVICE_ACCOUNT_B64", "valueFrom": "arn:aws:ssm:ap-northeast-1:405894839372:parameter/prod/FIREBASE_SERVICE_ACCOUNT_B64" }
+      ]
+    }
+  ],
+  "volumes": []
+}
