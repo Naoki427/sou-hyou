@@ -35,8 +35,8 @@ export const Header = () => {
             ログアウト
           </button>
         ) : (
-          <Link href="/register" className="btn btn-solid">
-            新規登録
+          <Link href="/login" className="btn btn-solid">
+            ログイン
           </Link>
         )}
       </div>

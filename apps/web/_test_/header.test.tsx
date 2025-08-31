@@ -18,12 +18,12 @@ async function loadHeader(): Promise<ComponentType<any>> {
 }
 
 describe("Header", () => {
-  it("未ログイン時は『新規登録』が見える", async () => {
+  it("未ログイン時は『ログイン』が見える", async () => {
     vi.resetModules(); // ← キャッシュクリア（直前の doMock の影響をなくす）
     const Header = await loadHeader();
 
     render(<Header />);
-    expect(screen.getByText("新規登録")).toBeInTheDocument();
+    expect(screen.getByText("ログイン")).toBeInTheDocument();
     expect(screen.queryByText("ログアウト")).not.toBeInTheDocument();
   });
 
