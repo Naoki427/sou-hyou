@@ -23,8 +23,8 @@ export default function Page() {
 
           <div className="home_image">
             <Image
-              src="/mainpage.png"
-              alt="予想を考える人物のイラスト"
+              src="/mainpage.PNG"
+              alt=""
               width={960}
               height={720}
               priority
